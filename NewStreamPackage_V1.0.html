@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Stream Viewer</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #000;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    /* Loading Screen with color fading/mixing background */
+    #loading {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 10;
+
+      background: radial-gradient(circle at 30% 30%, #ff004c, transparent 60%),
+                  radial-gradient(circle at 70% 70%, #00ccff, transparent 60%),
+                  radial-gradient(circle at 50% 50%, #00ff99, transparent 60%);
+      background-blend-mode: screen;
+      animation: colorMix 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes colorMix {
+      0% {
+        background-position: 30% 30%, 70% 70%, 50% 50%;
+      }
+      100% {
+        background-position: 70% 50%, 30% 60%, 60% 40%;
+      }
+    }
+
+    #loading span {
+      font-size: 20px;
+      color: white;
+      margin-top: 10px;
+    }
+
+    /* Sidebar Menu */
+    #sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: rgba(20, 20, 20, 0.95);
+      backdrop-filter: blur(4px);
+      transition: left 0.3s ease;
+      padding: 20px;
+      box-sizing: border-box;
+      z-index: 5;
+    }
+    #sidebar h2 {
+      font-size: 18px;
+      border-bottom: 1px solid gray;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    #sidebar input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 4px;
+    }
+    #sidebar button {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      background: purple;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #sidebar button:hover {
+      background: darkviolet;
+    }
+
+    /* Rating Section */
+    .rating {
+      display: flex;
+      justify-content: space-around;
+      margin: 10px 0;
+      cursor: pointer;
+      font-size: 22px;
+    }
+    .rating span:hover,
+    .rating span.active {
+      color: gold;
+    }
+
+    /* Viewer Counter */
+    #viewers {
+      text-align: center;
+      margin-top: 10px;
+      color: #ccc;
+    }
+
+    /* Menu Toggle Button */
+    #menuButton {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: rgba(50, 50, 50, 0.8);
+      color: white;
+      border: none;
+      font-size: 20px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 6;
+    }
+    #menuButton:hover {
+      background: rgba(100, 0, 200, 0.8);
+    }
+
+    /* Stream Frame */
+    iframe {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading">
+    <div class="loader"></div>
+    <span>Loading Stream...</span>
+  </div>
+
+  <!-- Sidebar Menu -->
+  <div id="sidebar">
+    <h2>Stream Settings</h2>
+    <input type="text" id="streamInput" placeholder="Enter new embed link..." />
+    <button onclick="changeStream()">Load Stream</button>
+
+    <h2>Rate This Site</h2>
+    <div class="rating" id="rating">
+      <span data-value="1">★</span>
+      <span data-value="2">★</span>
+      <span data-value="3">★</span>
+      <span data-value="4">★</span>
+      <span data-value="5">★</span>
+    </div>
+
+    <div id="viewers">👁 Viewers Online: <span id="viewerCount">0</span></div>
+  </div>
+
+  <!-- Menu Button -->
+  <button id="menuButton" onclick="toggleMenu()">☰</button>
+
+  <!-- Livestream -->
+  <iframe id="streamFrame" 
+    src="https://ihatestreams.xyz/hcap/e3ed26d0-3cdb-11f0-afb1-ecf4bbdafde4"
+    allowfullscreen>
+  </iframe>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const menuButton = document.getElementById("menuButton");
+    const loadingScreen = document.getElementById("loading");
+    const streamFrame = document.getElementById("streamFrame");
+    const viewerCount = document.getElementById("viewerCount");
+
+    // Toggle sidebar
+    function toggleMenu() {
+      sidebar.style.left = sidebar.style.left === "0px" ? "-250px" : "0px";
+    }
+
+    // Change livestream link
+    function changeStream() {
+      const newLink = document.getElementById("streamInput").value.trim();
+      if (newLink !== "") {
+        loadingScreen.style.display = "flex";
+        streamFrame.src = newLink;
+        sidebar.style.left = "-250px";
+      }
+    }
+
+    // Simulate viewer count
+    function randomViewers() {
+      viewerCount.textContent = Math.floor(20 + Math.random() * 180);
+    }
+    randomViewers();
+    setInterval(randomViewers, 5000);
+
+    // Handle loading state
+    streamFrame.addEventListener("load", () => {
+      loadingScreen.style.display = "none";
+    });
+
+    // Rating system
+    const stars = document.querySelectorAll("#rating span");
+    stars.forEach(star => {
+      star.addEventListener("click", () => {
+        stars.forEach(s => s.classList.remove("active"));
+        star.classList.add("active");
+        alert(`Thanks for rating ${star.dataset.value} stars!`);
+      });
+    });
+  </script>
+</body>
+</html>
